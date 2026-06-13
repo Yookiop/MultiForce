@@ -1,1 +1,1 @@
-This plugin brings all Runelite windows to the front when a force-focus notification is triggered
+This plugin brings all Runelite windows to the front when a force-focus notification is triggered.
