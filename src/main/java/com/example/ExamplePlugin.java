@@ -36,13 +36,13 @@ public class ExamplePlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		log.debug("MultiForce started!");
+		log.info("MultiForce plugin started and ready!");
 		
 		// Log the number of RuneLite windows currently open
 		if (OSType.getOSType() == OSType.Windows)
 		{
 			List<WinDef.HWND> runeliteWindows = findAllRuneliteWindows();
-			log.debug("MultiForce: Current RuneLite windows on startup: {}", runeliteWindows.size());
+			log.info("MultiForce: Current RuneLite windows on startup: {}", runeliteWindows.size());
 		}
 	}
 
@@ -55,9 +55,13 @@ public class ExamplePlugin extends Plugin
 	@Subscribe
 	public void onNotificationFired(NotificationFired notificationFired)
 	{
+		log.info("MultiForce: Notification event received!");
+		
 		// Only process FORCE focus notifications
 		if (notificationFired.getNotification().getRequestFocus() != RequestFocusType.FORCE)
 		{
+			log.debug("MultiForce: Notification focus type is {} (not FORCE), skipping", 
+				notificationFired.getNotification().getRequestFocus());
 			return;
 		}
 
@@ -68,7 +72,7 @@ public class ExamplePlugin extends Plugin
 			return;
 		}
 
-		log.debug("MultiForce: FORCE focus notification triggered - attempting to bring all RuneLite windows to front");
+		log.info("MultiForce: FORCE focus notification triggered - attempting to bring all RuneLite windows to front");
 
 		try
 		{
@@ -127,11 +131,12 @@ public class ExamplePlugin extends Plugin
 
 	/**
 	 * Finds all RuneLite client windows by enumerating all windows and checking titles
+	 * Only matches windows with the pattern "RuneLite - [PlayerName]" (actual game client windows)
 	 */
 	private List<WinDef.HWND> findAllRuneliteWindows()
 	{
 		List<WinDef.HWND> windows = new ArrayList<>();
-		List<String> allWindowTitles = new ArrayList<>();
+		List<String> allRuneliteMatches = new ArrayList<>();
 		User32 user32 = User32.INSTANCE;
 
 		try
@@ -144,13 +149,14 @@ public class ExamplePlugin extends Plugin
 				if (length > 0)
 				{
 					String title = new String(titleChars, 0, length);
-					allWindowTitles.add(title);
 					
-					// Check if this is a RuneLite window
-					if (title.contains("RuneLite"))
+					// Only match actual game client windows: "RuneLite - [PlayerName]"
+					// This filters out inspector windows, shell windows, and other tools
+					if (title.startsWith("RuneLite - "))
 					{
 						windows.add(hWnd);
-						log.debug("MultiForce: Found RuneLite window: '{}'", title);
+						allRuneliteMatches.add(title);
+						log.info("MultiForce: Found RuneLite client window: '{}'", title);
 					}
 				}
 
@@ -162,13 +168,10 @@ public class ExamplePlugin extends Plugin
 			log.warn("MultiForce: Failed to enumerate windows", e);
 		}
 
-		log.debug("MultiForce: Total windows enumerated: {}", allWindowTitles.size());
-		log.debug("MultiForce: RuneLite windows found: {}", windows.size());
-		
+		log.info("MultiForce: RuneLite client windows found: {}", windows.size());
 		if (windows.isEmpty())
 		{
-			log.debug("MultiForce: Sample of all window titles (first 10): {}", 
-				allWindowTitles.stream().limit(10).toArray());
+			log.warn("MultiForce: No RuneLite client windows found");
 		}
 
 		return windows;
