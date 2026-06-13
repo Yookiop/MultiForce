@@ -37,6 +37,13 @@ public class ExamplePlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		log.debug("MultiForce started!");
+		
+		// Log the number of RuneLite windows currently open
+		if (OSType.getOSType() == OSType.Windows)
+		{
+			List<WinDef.HWND> runeliteWindows = findAllRuneliteWindows();
+			log.debug("MultiForce: Current RuneLite windows on startup: {}", runeliteWindows.size());
+		}
 	}
 
 	@Override
@@ -60,6 +67,8 @@ public class ExamplePlugin extends Plugin
 			log.debug("MultiForce: Skipping multi-window focus on non-Windows OS");
 			return;
 		}
+
+		log.debug("MultiForce: FORCE focus notification triggered - attempting to bring all RuneLite windows to front");
 
 		try
 		{
@@ -89,10 +98,13 @@ public class ExamplePlugin extends Plugin
 		User32 user32 = User32.INSTANCE;
 
 		// For each window, simulate input and set it to foreground
-		for (WinDef.HWND hwnd : runeliteWindows)
+		for (int i = 0; i < runeliteWindows.size(); i++)
 		{
+			WinDef.HWND hwnd = runeliteWindows.get(i);
 			try
 			{
+				log.debug("MultiForce: Bringing window {} of {} to front", i + 1, runeliteWindows.size());
+				
 				// Send a F22 key event to allow SetForegroundWindow to work
 				// (Windows security restriction)
 				WinUser.INPUT input = new WinUser.INPUT();
@@ -102,13 +114,15 @@ public class ExamplePlugin extends Plugin
 
 				// Bring the window to foreground
 				user32.SetForegroundWindow(hwnd);
-				log.debug("MultiForce: Brought window to front");
+				log.debug("MultiForce: Successfully brought window {} to front", i + 1);
 			}
 			catch (Exception e)
 			{
-				log.warn("MultiForce: Failed to focus window", e);
+				log.warn("MultiForce: Failed to focus window {} of {}", i + 1, runeliteWindows.size(), e);
 			}
 		}
+		
+		log.debug("MultiForce: Completed bringing {} RuneLite window(s) to front", runeliteWindows.size());
 	}
 
 	/**
@@ -117,6 +131,7 @@ public class ExamplePlugin extends Plugin
 	private List<WinDef.HWND> findAllRuneliteWindows()
 	{
 		List<WinDef.HWND> windows = new ArrayList<>();
+		List<String> allWindowTitles = new ArrayList<>();
 		User32 user32 = User32.INSTANCE;
 
 		try
@@ -129,10 +144,13 @@ public class ExamplePlugin extends Plugin
 				if (length > 0)
 				{
 					String title = new String(titleChars, 0, length);
+					allWindowTitles.add(title);
+					
 					// Check if this is a RuneLite window
 					if (title.contains("RuneLite"))
 					{
 						windows.add(hWnd);
+						log.debug("MultiForce: Found RuneLite window: '{}'", title);
 					}
 				}
 
@@ -142,6 +160,15 @@ public class ExamplePlugin extends Plugin
 		catch (Exception e)
 		{
 			log.warn("MultiForce: Failed to enumerate windows", e);
+		}
+
+		log.debug("MultiForce: Total windows enumerated: {}", allWindowTitles.size());
+		log.debug("MultiForce: RuneLite windows found: {}", windows.size());
+		
+		if (windows.isEmpty())
+		{
+			log.debug("MultiForce: Sample of all window titles (first 10): {}", 
+				allWindowTitles.stream().limit(10).toArray());
 		}
 
 		return windows;
