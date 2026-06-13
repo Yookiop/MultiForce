@@ -19,7 +19,7 @@ import net.runelite.client.util.OSType;
 @Slf4j
 @PluginDescriptor(
 		name = "MultiForce",
-		description = "Brings all Runelite windows to the front when a force-focus notification is triggered",
+		description = "Brings all Runelite windows to the front when a force-focus notification is triggered on any Runelite window",
 		tags = {"notification", "focus", "multi", "client"}
 )
 public class MultiForcePlugin extends Plugin
