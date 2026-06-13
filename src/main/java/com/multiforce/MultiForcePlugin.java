@@ -1,11 +1,8 @@
-package com.example;
+package com.multiforce;
 
 import com.google.inject.Provides;
-import com.sun.jna.Native;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
-import com.sun.jna.platform.win32.WinUser;
-import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -21,23 +18,23 @@ import net.runelite.client.util.OSType;
 
 @Slf4j
 @PluginDescriptor(
-	name = "MultiForce",
-	description = "Brings all Runelite windows to the front when a force-focus notification is triggered",
-	tags = {"notification", "focus", "multi", "client"}
+		name = "MultiForce",
+		description = "Brings all Runelite windows to the front when a force-focus notification is triggered",
+		tags = {"notification", "focus", "multi", "client"}
 )
-public class ExamplePlugin extends Plugin
+public class MultiForcePlugin extends Plugin
 {
 	@Inject
 	private Client client;
 
 	@Inject
-	private ExampleConfig config;
+	private MultiForceConfig config;
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		log.info("MultiForce plugin started and ready!");
-		
+
 		if (OSType.getOSType() == OSType.Windows)
 		{
 			List<WinDef.HWND> runeliteWindows = findAllRuneliteWindows();
@@ -55,12 +52,12 @@ public class ExamplePlugin extends Plugin
 	public void onNotificationFired(NotificationFired notificationFired)
 	{
 		log.info("MultiForce: Notification event received!");
-		
+
 		// Only process FORCE focus notifications
 		if (notificationFired.getNotification().getRequestFocus() != RequestFocusType.FORCE)
 		{
-			log.debug("MultiForce: Notification focus type is {} (not FORCE), skipping", 
-				notificationFired.getNotification().getRequestFocus());
+			log.debug("MultiForce: Notification focus type is {} (not FORCE), skipping",
+					notificationFired.getNotification().getRequestFocus());
 			return;
 		}
 
@@ -102,15 +99,7 @@ public class ExamplePlugin extends Plugin
 			try
 			{
 				log.debug("MultiForce: Bringing window {} of {} to front", i + 1, runeliteWindows.size());
-				
-				// Send a F22 key event to allow SetForegroundWindow to work
-				// (Windows security restriction)
-				//WinUser.INPUT input = new WinUser.INPUT();
-				//input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-				//input.input.ki.wVk = new WinDef.WORD(0x85); // VK_F22
-				//user32.SendInput(new WinDef.DWORD(1), (WinUser.INPUT[]) input.toArray(1), input.size());
 
-				// Bring the window to foreground
 				user32.SetForegroundWindow(hwnd);
 				log.debug("MultiForce: Successfully brought window {} to front", i + 1);
 			}
@@ -119,14 +108,11 @@ public class ExamplePlugin extends Plugin
 				log.warn("MultiForce: Failed to focus window {} of {}", i + 1, runeliteWindows.size(), e);
 			}
 		}
-		
+
 		log.debug("MultiForce: Completed bringing {} RuneLite window(s) to front", runeliteWindows.size());
 	}
 
-	/**
-	 * Finds all RuneLite client windows by enumerating all windows and checking titles
-	 * Only matches windows with the pattern "RuneLite - [PlayerName]" (actual game client windows)
-	 */
+
 	private List<WinDef.HWND> findAllRuneliteWindows()
 	{
 		List<WinDef.HWND> windows = new ArrayList<>();
@@ -143,9 +129,7 @@ public class ExamplePlugin extends Plugin
 				if (length > 0)
 				{
 					String title = new String(titleChars, 0, length);
-					
-					// Only match actual game client windows: "RuneLite - [PlayerName]"
-					// This filters out inspector windows, shell windows, and other tools
+
 					if (title.startsWith("RuneLite - "))
 					{
 						windows.add(hWnd);
@@ -154,7 +138,7 @@ public class ExamplePlugin extends Plugin
 					}
 				}
 
-				return true; // Continue enumeration
+				return true;
 			}, null);
 		}
 		catch (Exception e)
@@ -172,8 +156,8 @@ public class ExamplePlugin extends Plugin
 	}
 
 	@Provides
-	ExampleConfig provideConfig(ConfigManager configManager)
+	MultiForceConfig provideConfig(ConfigManager configManager)
 	{
-		return configManager.getConfig(ExampleConfig.class);
+		return configManager.getConfig(MultiForceConfig.class);
 	}
 }
