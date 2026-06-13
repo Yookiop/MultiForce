@@ -22,7 +22,7 @@ import net.runelite.client.util.OSType;
 @Slf4j
 @PluginDescriptor(
 	name = "MultiForce",
-	description = "Brings all RuneLite clients to the front when a force-focus notification is triggered",
+	description = "Brings all Runelite windows to the front when a force-focus notification is triggered",
 	tags = {"notification", "focus", "multi", "client"}
 )
 public class ExamplePlugin extends Plugin
@@ -38,7 +38,6 @@ public class ExamplePlugin extends Plugin
 	{
 		log.info("MultiForce plugin started and ready!");
 		
-		// Log the number of RuneLite windows currently open
 		if (OSType.getOSType() == OSType.Windows)
 		{
 			List<WinDef.HWND> runeliteWindows = findAllRuneliteWindows();
@@ -65,7 +64,6 @@ public class ExamplePlugin extends Plugin
 			return;
 		}
 
-		// Only Windows supports multi-window focusing via JNA
 		if (OSType.getOSType() != OSType.Windows)
 		{
 			log.debug("MultiForce: Skipping multi-window focus on non-Windows OS");
@@ -84,9 +82,6 @@ public class ExamplePlugin extends Plugin
 		}
 	}
 
-	/**
-	 * Finds all RuneLite client windows and brings them to the foreground
-	 */
 	private void bringAllClientWindowsToFront()
 	{
 		List<WinDef.HWND> runeliteWindows = findAllRuneliteWindows();
@@ -101,7 +96,6 @@ public class ExamplePlugin extends Plugin
 
 		User32 user32 = User32.INSTANCE;
 
-		// For each window, simulate input and set it to foreground
 		for (int i = 0; i < runeliteWindows.size(); i++)
 		{
 			WinDef.HWND hwnd = runeliteWindows.get(i);
@@ -111,10 +105,10 @@ public class ExamplePlugin extends Plugin
 				
 				// Send a F22 key event to allow SetForegroundWindow to work
 				// (Windows security restriction)
-				WinUser.INPUT input = new WinUser.INPUT();
-				input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-				input.input.ki.wVk = new WinDef.WORD(0x85); // VK_F22
-				user32.SendInput(new WinDef.DWORD(1), (WinUser.INPUT[]) input.toArray(1), input.size());
+				//WinUser.INPUT input = new WinUser.INPUT();
+				//input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+				//input.input.ki.wVk = new WinDef.WORD(0x85); // VK_F22
+				//user32.SendInput(new WinDef.DWORD(1), (WinUser.INPUT[]) input.toArray(1), input.size());
 
 				// Bring the window to foreground
 				user32.SetForegroundWindow(hwnd);
